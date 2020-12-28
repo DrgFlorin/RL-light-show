@@ -1,0 +1,21 @@
+body {
+  overflow-y: hidden;
+  background-color: black;
+}
+
+.App {
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn1 {
+  display: block;
+  margin: 0 auto;
+  margin-top: 20px;
+}
+
+.sketch-picker {
+  height: 350px;
+} 
