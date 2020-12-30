@@ -1,3 +1,4 @@
+import { Console } from "console";
 import { Board } from "johnny-five";
 
 // imports
@@ -184,6 +185,7 @@ const WsSubscribers: any = {
 // interaces
 interface stateInterface {
     users: string[];
+    reconnectInterval: number;
 }
 interface welcomeUserInterface {
     remoteAddress: string;
@@ -192,7 +194,8 @@ interface welcomeUserInterface {
 
 // state
 let state: stateInterface = {
-    users: []
+    users: [],
+    reconnectInterval: 5000
 }
 
 // functions
@@ -210,82 +213,115 @@ const welcomeUser = (data: welcomeUserInterface) => {
 }
 
 // start board
-board.on('ready', () => {
+const connectToTheBoard = () => {
+    console.log("Trying to connect...")
 
-    strip = new pixel.Strip({
-        board: board,
-        controller: "FIRMATA",
-        strips: [ {pin: 6, length: 16}, ],
-        gamma: 2.8,
-    });
+    board.on('ready', () => {
+
+        strip = new pixel.Strip({
+            board: board,
+            controller: "FIRMATA",
+            strips: [{ pin: 6, length: 16 },],
+            gamma: 2.8,
+        });
+        
+        strip.on("ready", function () {
+            console.log("Strip is ready to use");
     
-    strip.on("ready", function () {
-        console.log("Strip is ready to use");
-
-        WsSubscribers.init(49322, false);
-        WsSubscribers.subscribe("game", "statfeed_event", (data: any) => {
-            let startTime = new Date().getTime();
-            if (data.main_target.name === "ClearOFF" && data.type === "Goal") {
-                let colorSwitch = false;
-                setInterval(function(){
-                    if(new Date().getTime() - startTime > 3000){
+            WsSubscribers.init(49322, false);
+            WsSubscribers.subscribe("game", "pre_countdown_begin", (data: any) => {
+                console.log(data);
+                let startTime = new Date().getTime();
+                let colorSwitch = 0;
+                let colorArray = ["#e60000", "#ffff00", "#00e00b"];
+                setInterval(function () {
+                    if (new Date().getTime() - startTime > 3700) {
                         clearInterval(this);
                         strip.off();
                         return;
                     }
-                    if (colorSwitch) {
-                        strip.color("#FF0000");
-                        strip.show();
-                        colorSwitch = !colorSwitch
-                    } else {
-                        strip.color("#0037fb");
-                        strip.show();
-                        colorSwitch = !colorSwitch
-                    }
-                }, 250);
-                
-            }
-        })
-
-        wss.on('connection', function (ws: any, req: any) {
-            welcomeUser({
-                remoteAddress: req.connection.remoteAddress,
-                // builtInLed: builtInLeds[0]
+                    strip.color(colorArray[colorSwitch]);
+                    strip.show();
+                    colorSwitch += 1;
+    
+                }, 1000);
             });
-    
-            
-    
-            ws.on('message', function (data: string) {
-    
-                if (data === "off") {
-                    strip.off();
+            WsSubscribers.subscribe("game", "statfeed_event", (data: any) => {
+                console.log(data, ["statfeed_event"]);
+                let startTime = new Date().getTime();
+                if (data.type === "Goal") {
+                    let colorSwitch = false;
+                    setInterval(function () {
+                        if (new Date().getTime() - startTime > 3000) {
+                            clearInterval(this);
+                            strip.off();
+                            return;
+                        }
+                        if (colorSwitch) {
+                            strip.color("#FF0000");
+                            strip.show();
+                            colorSwitch = !colorSwitch
+                        } else {
+                            strip.color("#0037fb");
+                            strip.show();
+                            colorSwitch = !colorSwitch
+                        }
+                    }, 250);
+                    
                 }
-                if (data[0] === "#") {
-                    strip.color(data);
-                    strip.show();
-                }
-                if (data === "white") {
-                    strip.color("#fff");
-                    strip.show();
-                }
-                if (data === "red") {
-                    strip.color("#ff1100");
-                    strip.show();
-                }
-                if (data === "anim") {
-                    strip.pixel(0).color('#074');
-                    strip.pixel(6).color('#ff1100');
-                    strip.shift(1, pixel.FORWARD, true);
-                    strip.show();
-                }
-    
-            });
-            
-            ws.on('close', () => {
-                console.log(`a user has closed the connection`);
             })
-            
-        })
-    });
     
-})
+            wss.on('connection', function (ws: any, req: any) {
+                welcomeUser({
+                    remoteAddress: req.socket.remoteAddress,
+                    // builtInLed: builtInLeds[0]
+                });
+        
+                ws.on('message', function (data: string) {
+    
+                    new Promise((resolve: any, reject: any) => {
+                        // what to do before anything else
+                    
+                        resolve();
+                    })
+                        .then(() => {
+                        
+                            if (data === "off") {
+                                strip.off();
+                            }
+                            if (data[0] === "#") {
+                                strip.color(data);
+                                strip.show();
+                            }
+                            if (data === "white") {
+                                strip.color("#fff");
+                                strip.show();
+                            }
+                            if (data === "red") {
+                                strip.color("#ff1100");
+                                strip.show();
+                            
+                            }
+                        })
+                        .catch((err) => {
+                            console.error(err.message);
+                        })
+                    // .then(() => {
+                    //     console.log('Do this, no matter what happened before');
+                    // });
+    
+                });
+                
+                ws.on('close', () => {
+                    console.log(`a user has closed the connection`);
+                })
+                
+            })
+        });
+        board.on("exit", () => {
+            strip.off();
+        });
+    });
+};
+
+connectToTheBoard();
