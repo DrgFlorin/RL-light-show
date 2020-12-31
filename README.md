@@ -10,6 +10,7 @@ After you download the repo, install the node_modules
 
 ```
 npm install
+```
 
 Download the SOS-WS-Relay and install it aswell with the same command as above
 
@@ -20,11 +21,13 @@ After that you can start the SOS-WS-Relay with:
 
 ```
 npm run relay
+```
 
 And now you can start the Rocket League Light Show ^^ using:
 
 ```
 npm start
+```
 
 ## Contributing
 
