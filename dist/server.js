@@ -75,44 +75,24 @@ const connectToTheBoard = () => {
             console.log("Strip is ready to use");
             rocketLeagueWS_1.WsSubscribers.init(49322, false);
             rocketLeagueWS_1.WsSubscribers.subscribe("game", "pre_countdown_begin", (data) => {
-                console.log(data);
-                let startTime = new Date().getTime();
-                let colorSwitch = 0;
-                let colorArray = ["#e60000", "#ffff00", "#00e00b"];
-                setInterval(function () {
-                    if (new Date().getTime() - startTime > 3700) {
-                        clearInterval(this);
-                        strip.off();
-                        return;
-                    }
-                    strip.color(colorArray[colorSwitch]);
-                    strip.show();
-                    colorSwitch += 1;
-                }, 1000);
+                functions_1.action.onCountdownBegin(strip, ["#de0000", "#8400e3", "#0039e6"]);
+                // let startTime = new Date().getTime();
+                // let colorSwitch = 0;
+                // let colorArray = ["#e60000", "#ffff00", "#00e00b"];
+                // setInterval(function () {
+                //     if (new Date().getTime() - startTime > 3700) {
+                //         clearInterval(this);
+                //         strip.off();
+                //         return;
+                //     }
+                //     strip.color(colorArray[colorSwitch]);
+                //     strip.show();
+                //     colorSwitch += 1;
+                // }, 1000);
             });
             rocketLeagueWS_1.WsSubscribers.subscribe("game", "statfeed_event", (data) => {
                 console.log(data, ["statfeed_event"]);
-                let startTime = new Date().getTime();
-                if (data.type === "Goal") {
-                    let colorSwitch = false;
-                    setInterval(function () {
-                        if (new Date().getTime() - startTime > 3000) {
-                            clearInterval(this);
-                            strip.off();
-                            return;
-                        }
-                        if (colorSwitch) {
-                            strip.color("#FF0000");
-                            strip.show();
-                            colorSwitch = !colorSwitch;
-                        }
-                        else {
-                            strip.color("#0037fb");
-                            strip.show();
-                            colorSwitch = !colorSwitch;
-                        }
-                    }, 250);
-                }
+                functions_1.SOS_WS_Relay_events(data.type, strip);
             });
             wss.on('connection', function (ws, req) {
                 functions_1.welcomeUser({

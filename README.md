@@ -29,6 +29,36 @@ And now you can start the Rocket League Light Show ^^ using:
 npm start
 ```
 
+## Compile Typescript
+```
+tsc -w  or tsc --watch
+```
+
 ## Contributing
 
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
+
+## Events
+```
+statfeed_event:
+  main_target: {
+    id: string,
+    name: string
+  },
+  secondary_target: {
+    id: string,
+    name: string
+  }
+  types: [
+    'Shot on Goal',
+    'Goal',
+    'Save',
+    'Assist',
+    'MVP', /* end of the game */
+    'Win',
+    'Savior', /* every third save */
+    'Bicycle Hit',
+    'Epic Save',
+    'Demolition' /* has a secondary target */
+  ]
+```
