@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+require('better-logging')(console);
 // functions
 const functions_1 = require("./functions");
 // imports
@@ -56,10 +57,9 @@ const board = new johnny_five_1.Board({
 transistor: 2N 2222A
 viewing from the flat side: emitter, base, Collector
 */
-console.log(functions_1.action.meow("haubauciai"));
 // start board
 const connectToTheBoard = () => {
-    console.log("Trying to connect...");
+    console.info('Trying to connect...');
     board.on('ready', () => {
         // I2C display 2x16
         let I2C_Display = new five.LCD({
@@ -72,28 +72,17 @@ const connectToTheBoard = () => {
             gamma: 2.8,
         });
         strip.on("ready", function () {
-            console.log("Strip is ready to use");
+            console.info("Strip is ready to use");
             rocketLeagueWS_1.WsSubscribers.init(49322, false);
             rocketLeagueWS_1.WsSubscribers.subscribe("game", "pre_countdown_begin", (data) => {
-                functions_1.action.onCountdownBegin(strip, ["#de0000", "#8400e3", "#0039e6"]);
-                // let startTime = new Date().getTime();
-                // let colorSwitch = 0;
-                // let colorArray = ["#e60000", "#ffff00", "#00e00b"];
-                // setInterval(function () {
-                //     if (new Date().getTime() - startTime > 3700) {
-                //         clearInterval(this);
-                //         strip.off();
-                //         return;
-                //     }
-                //     strip.color(colorArray[colorSwitch]);
-                //     strip.show();
-                //     colorSwitch += 1;
-                // }, 1000);
+                functions_1.action.onCountdownBegin(strip);
             });
             rocketLeagueWS_1.WsSubscribers.subscribe("game", "statfeed_event", (data) => {
-                console.log(data, ["statfeed_event"]);
+                console.debug(data, ["statfeed_event"]);
                 functions_1.SOS_WS_Relay_events(data.type, strip);
             });
+            // rainbow anim on start
+            functions_1.action.stripDynamicRainbow(strip, 5);
             wss.on('connection', function (ws, req) {
                 functions_1.welcomeUser({
                     remoteAddress: req.socket.remoteAddress,
@@ -111,11 +100,11 @@ const connectToTheBoard = () => {
                             I2C_Display.cursor(1, 0).print(data.slice(6));
                         }
                         if (data === "off") {
-                            strip.off();
+                            functions_1.action.stripOff(strip);
+                            functions_1.action.stripOffAnim();
                         }
                         if (data[0] === "#") {
-                            strip.color(data);
-                            strip.show();
+                            functions_1.action.stripColorByHex(strip, data);
                         }
                         if (data === "white") {
                             strip.color("#fff");
@@ -124,6 +113,12 @@ const connectToTheBoard = () => {
                         if (data === "red") {
                             strip.color("#ff1100");
                             strip.show();
+                        }
+                        if (data === "cycle") {
+                            functions_1.action.stripColorCyleAnim(strip, 2.5);
+                        }
+                        if (data === "rainbow") {
+                            functions_1.action.stripDynamicRainbow(strip, 10);
                         }
                     })
                         .catch((err) => {
@@ -134,7 +129,7 @@ const connectToTheBoard = () => {
                     // });
                 });
                 ws.on('close', () => {
-                    console.log(`a user has closed the connection`);
+                    console.warn(`a user has closed the connection`);
                 });
             });
         });

@@ -1,3 +1,4 @@
+require('better-logging')(console);
 // functions
 import { welcomeUser, action, SOS_WS_Relay_events } from './functions';
 
@@ -59,11 +60,9 @@ transistor: 2N 2222A
 viewing from the flat side: emitter, base, Collector
 */
 
-console.log(action.meow("haubauciai"));
-
 // start board
 const connectToTheBoard = () => {
-    console.log("Trying to connect...")
+    console.info('Trying to connect...');
 
     board.on('ready', () => {
 
@@ -80,20 +79,23 @@ const connectToTheBoard = () => {
         });
         
         strip.on("ready", function () {
-            console.log("Strip is ready to use");
+            console.info("Strip is ready to use");
     
             WsSubscribers.init(49322, false);
             WsSubscribers.subscribe("game", "pre_countdown_begin", (data: any) => {
 
-                action.onCountdownBegin(strip, ["#de0000", "#8400e3", "#0039e6"]);
+                action.onCountdownBegin(strip);
 
             });
             WsSubscribers.subscribe("game", "statfeed_event", (data: any) => {
-                console.log(data, ["statfeed_event"]);
+                console.debug(data, ["statfeed_event"]);
 
                 SOS_WS_Relay_events(data.type, strip);
             })
-     
+
+            // rainbow anim on start
+            action.stripDynamicRainbow(strip, 5);
+
             wss.on('connection', function (ws: any, req: any) {
                 welcomeUser({
                     remoteAddress: req.socket.remoteAddress,
@@ -116,11 +118,11 @@ const connectToTheBoard = () => {
                                 I2C_Display.cursor(1, 0).print(data.slice(6));
                             }
                             if (data === "off") {
-                                strip.off();
+                                action.stripOff(strip);
+                                action.stripOffAnim();
                             }
                             if (data[0] === "#") {
-                                strip.color(data);
-                                strip.show();
+                                action.stripColorByHex(strip, data);
                             }
                             if (data === "white") {
                                 strip.color("#fff");
@@ -129,6 +131,12 @@ const connectToTheBoard = () => {
                             if (data === "red") {
                                 strip.color("#ff1100");
                                 strip.show();
+                            }
+                            if (data === "cycle") {
+                                action.stripColorCyleAnim(strip, 2.5);
+                            }
+                            if (data === "rainbow") {
+                                action.stripDynamicRainbow(strip, 10);
                             }
                         })
                         .catch((err) => {
@@ -141,7 +149,7 @@ const connectToTheBoard = () => {
                 });
                 
                 ws.on('close', () => {
-                    console.log(`a user has closed the connection`);
+                    console.warn(`a user has closed the connection`);
                 })
                 
             })
