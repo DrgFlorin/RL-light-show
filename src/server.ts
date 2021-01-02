@@ -88,13 +88,12 @@ const connectToTheBoard = () => {
 
             });
             WsSubscribers.subscribe("game", "statfeed_event", (data: any) => {
-                console.debug(data, ["statfeed_event"]);
 
                 SOS_WS_Relay_events(data.type, strip);
             })
 
             // rainbow anim on start
-            action.stripDynamicRainbow(strip, 5);
+            action.stripDynamicRainbow(strip, 4);
 
             wss.on('connection', function (ws: any, req: any) {
                 welcomeUser({
@@ -136,7 +135,7 @@ const connectToTheBoard = () => {
                                 action.stripColorCyleAnim(strip, 2.5);
                             }
                             if (data === "rainbow") {
-                                action.stripDynamicRainbow(strip, 10);
+                                action.stripDynamicRainbow(strip, 4);
                             }
                         })
                         .catch((err) => {

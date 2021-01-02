@@ -80,6 +80,13 @@ function colorWheel( WheelPos: number ) {
 }
 
 
+// utils
+const util: any = {
+  log: (type: string, action?: string) => {
+    console.info(`[${type}]${': ' + action}`);
+  }
+}
+
 // actions
 export const action: actionsInterface = {
 
@@ -89,44 +96,51 @@ export const action: actionsInterface = {
   stripOffAnim: () => {
     state.cycleAnimState = false;
     state.rainbowAnimState = false;
+    util.log("Action", "Off");
   },
   stripColorCyleAnim: (strip, fps) => {
-    state.rainbowAnimState = false;
-    state.cycleAnimState = true;
+    if (state.cycleAnimState === false) {
+      state.rainbowAnimState = false;
+      state.cycleAnimState = true;
 
-    const colors = ['red', 'blue', 'yellow', 'cyan', 'magenta'];
-    let current_colors = 0;
-    const blinker = setInterval(function() {
-      if (++current_colors === colors.length) current_colors = 0;
-        if (state.cycleAnimState === true) {
-          strip.color(colors[current_colors]); // blanks it out
-          strip.show();
-        } else {
-          clearInterval(blinker);
-        }
-    }, 1000/fps);
+      const colors = ['red', 'blue', 'yellow', 'cyan', 'magenta'];
+      let current_colors = 0;
+      util.log("Animation", "Color Cycle");
+      const blinker = setInterval(function() {
+        if (++current_colors === colors.length) current_colors = 0;
+          if (state.cycleAnimState === true) {
+            strip.color(colors[current_colors]); // blanks it out
+            strip.show();
+          } else {
+            clearInterval(blinker);
+          }
+      }, 1000/fps);
+    }
   },
   stripDynamicRainbow: (strip, fps) => {
-    state.cycleAnimState = false;
-    state.rainbowAnimState = true;
-
-    let showColor;
-    let cwi = 0; // colour wheel index (current position on colour wheel)
-    const rainbow = setInterval(function() {
-      if (state.rainbowAnimState === true) {
-        if (++cwi > 255) {
-          cwi = 0;
-        }
+    if (state.rainbowAnimState === false) {
+      state.cycleAnimState = false;
+      state.rainbowAnimState = true;
   
-        for (let i = 0; i < strip.length; i++) {
-          showColor = colorWheel( ( cwi+i ) & 255 );
-          strip.pixel( i ).color( showColor );
+      let showColor;
+      let cwi = 0; // colour wheel index (current position on colour wheel)
+      util.log("Animation", "Rainbow");
+      const rainbow = setInterval(function() {
+        if (state.rainbowAnimState === true) {
+          if (++cwi > 255) {
+            cwi = 0;
+          }
+    
+          for (let i = 0; i < strip.length; i++) {
+            showColor = colorWheel( ( cwi+i ) & 255 );
+            strip.pixel( i ).color( showColor );
+          }
+          strip.show();
+        } else {
+          clearInterval(rainbow);
         }
-        strip.show();
-      } else {
-        clearInterval(rainbow);
-      }
-    }, 1000/fps);
+      }, 1000/fps);
+    }
   },
   stripColorByHex: (strip, data) => {
     if (state.cycleAnimState === true || state.rainbowAnimState === true) {
@@ -137,7 +151,7 @@ export const action: actionsInterface = {
       strip.color(data);
       strip.show();
     }
-    
+    util.log("Color", data);
   },
   onGoal: (strip) => {
     let startTime = new Date().getTime();
@@ -145,11 +159,12 @@ export const action: actionsInterface = {
     if (state.cycleAnimState === true || state.rainbowAnimState === true) {
       action.stripOffAnim();
     }
+    util.log("Event", "Goal");
     setInterval(function () {
       if (new Date().getTime() - startTime > 3000) {  
         clearInterval(this);
         strip.off();
-        action.stripDynamicRainbow(strip, 10);
+        action.stripDynamicRainbow(strip, 4);
         return;
       }
       if (colorSwitch) {
@@ -170,11 +185,12 @@ export const action: actionsInterface = {
     if (state.cycleAnimState === true || state.rainbowAnimState === true) {
       action.stripOffAnim();
     }
+    util.log("Event", "Begin Countdown");
     setInterval(function () {
       if (new Date().getTime() - startTime > 3500) {
         clearInterval(this);
         strip.off();
-        action.stripDynamicRainbow(strip, 10);
+        action.stripDynamicRainbow(strip, 4);
         return;
       }
       strip.color(arrayOfColors[colorSwitch]);

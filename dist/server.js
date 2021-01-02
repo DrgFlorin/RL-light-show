@@ -78,11 +78,10 @@ const connectToTheBoard = () => {
                 functions_1.action.onCountdownBegin(strip);
             });
             rocketLeagueWS_1.WsSubscribers.subscribe("game", "statfeed_event", (data) => {
-                console.debug(data, ["statfeed_event"]);
                 functions_1.SOS_WS_Relay_events(data.type, strip);
             });
             // rainbow anim on start
-            functions_1.action.stripDynamicRainbow(strip, 5);
+            functions_1.action.stripDynamicRainbow(strip, 4);
             wss.on('connection', function (ws, req) {
                 functions_1.welcomeUser({
                     remoteAddress: req.socket.remoteAddress,
@@ -118,7 +117,7 @@ const connectToTheBoard = () => {
                             functions_1.action.stripColorCyleAnim(strip, 2.5);
                         }
                         if (data === "rainbow") {
-                            functions_1.action.stripDynamicRainbow(strip, 10);
+                            functions_1.action.stripDynamicRainbow(strip, 4);
                         }
                     })
                         .catch((err) => {
