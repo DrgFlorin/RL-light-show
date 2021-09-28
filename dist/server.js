@@ -15,7 +15,7 @@ const wss = new webSocket.Server({
     port: 81
 });
 /*
-// connection details for the board esp8266
+? connection details for the board esp8266
 const board = new five.Board({
     port: new EtherPortClient({
         host: '192.168.1.150', // esp ip
@@ -26,7 +26,7 @@ const board = new five.Board({
 */
 // connect to arduino through serial port
 const board = new johnny_five_1.Board({
-    port: "COM5",
+    port: "COM3",
     repl: false
 });
 /*
