@@ -18,7 +18,7 @@ const wss = new webSocket.Server({
 ? connection details for the board esp8266
 const board = new five.Board({
     port: new EtherPortClient({
-        host: '192.168.1.150', // esp ip
+        host: 'local_ip', // esp ip
         port: 3030
     }),
     repl: false
